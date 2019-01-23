@@ -1,6 +1,6 @@
 # BICpack
 
-R-functions for Bayesian model selection and hypothesis testing using default Bayes factors. Currently, the package only contains a functions for computing the BIC for order constrianed models (Mulder & Raftery, in prep.). The functions needs a fitted model (e.g., glm, survival) as input as well as a string that specifies a set of order constraints on the regression coefficients.
+R-functions for Bayesian model selection and hypothesis testing using default Bayes factors. Currently, the package only contains a functions for computing the BIC for order constrianed models (Mulder & Raftery, 2019). The functions needs a fitted model (e.g., glm, survival) as input as well as a string that specifies a set of order constraints on the regression coefficients.
 
 Written by Joris Mulder <j.mulder3@tilburguniversity.edu>
 
