@@ -4,7 +4,13 @@
 \alias{bic_oc}
 \title{Compute the BIC of an order-constrained model.}
 \usage{
-bic_oc(object, constraints = NULL, complement = F, numdraws = 1e+05)
+bic_oc(
+  object,
+  constraints = NULL,
+  complement = FALSE,
+  numdraws = 1e+05,
+  N = NULL
+)
 }
 \arguments{
 \item{object}{A fitted model object, such as a glm-object}
@@ -14,6 +20,8 @@ bic_oc(object, constraints = NULL, complement = F, numdraws = 1e+05)
 \item{complement}{A logical scalar that specifies if the order-constrained subspace is considered (FALSE) or its complement (TRUE). Default is FALSE.}
 
 \item{numdraws}{A number specifying the number of draws that are used to compute the posterior and prior probability that the order constraints hold. This setting is only when the number of \code{constraints} is larger than the rank of the coefficient matrix corresponding to the \code{constraints}.}
+
+\item{N}{The sample size used for the fitted model \code{object}. If it is left empty (\code{NULL}), then the sample size will be determine based on the dimension of the \code{fitted.values} element of \code{object}.}
 }
 \value{
 Return a list of which the order-constrained BIC of modeling \code{object} with \code{constraints} based on the local unit-information prior as first element, the posterior probability that the constraints hold as second element, and the prior probability that the constraints hold as third element. If \code{complement} is TRUE then the complement of the order-constrained subspace is considered.

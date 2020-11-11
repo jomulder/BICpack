@@ -182,6 +182,7 @@ create_matrices_oc <- function(object, constraints){
 #' @param constraints A string specifying order constraints on certain effects of the modeling object. If the value is NULL the ordinary BIC is computed.
 #' @param complement A logical scalar that specifies if the order-constrained subspace is considered (FALSE) or its complement (TRUE). Default is FALSE.
 #' @param numdraws A number specifying the number of draws that are used to compute the posterior and prior probability that the order constraints hold. This setting is only when the number of \code{constraints} is larger than the rank of the coefficient matrix corresponding to the \code{constraints}.
+#' @param N The sample size used for the fitted model \code{object}. If it is left empty (\code{NULL}), then the sample size will be determine based on the dimension of the \code{fitted.values} element of \code{object}.
 #' @return Return a list of which the order-constrained BIC of modeling \code{object} with \code{constraints} based on the local unit-information prior as first element, the posterior probability that the constraints hold as second element, and the prior probability that the constraints hold as third element. If \code{complement} is TRUE then the complement of the order-constrained subspace is considered.
 #' @examples
 #' n <- 100
@@ -194,7 +195,7 @@ create_matrices_oc <- function(object, constraints){
 #' # the effect of 'x2' on 'y' is larger than the effect of 'x1' on 'y', and both effects
 #' # are assumed positive.
 #' bic_oc(glm1,"x2 > x1 > 0")
-bic_oc <- function(object, constraints=NULL, complement=F, numdraws=1e5){
+bic_oc <- function(object, constraints=NULL, complement=FALSE, numdraws=1e5, N=NULL){
 
   # The function 'bic_oc' can be used for computing the order-constrained BIC
   # for a model-object (e.g., glm, coxph) with additional order constraints on
@@ -205,9 +206,15 @@ bic_oc <- function(object, constraints=NULL, complement=F, numdraws=1e5){
   logLike <- logLik(object)
   numpara <- attr(logLike,"df")
   logLike.unc <- logLik(object)[1]
-  N <- length(object$fitted.values)
-  if(class(object)[1]=="coxph"){
-    N <- object$n
+  #
+  if(is.null(N)){
+    N <- length(object$fitted.values)
+    if(class(object)[1]=="coxph"){
+      N <- object$n
+    }
+    warning(paste0("The number of observations was extracted from the object, resulting in N = ",
+                  as.character(N),", ","\n",
+                  "if this is not correct specify the sample size manually via the 'N' argument."))
   }
 
   if(is.null(constraints)){ #compute regular BIC
