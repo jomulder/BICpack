@@ -18,9 +18,10 @@ A vector of posterior model probabilities
 \code{postprob} computes posterior model probabilities based on given \code{bic}-values assuming prior probabilities specified as \code{priorprob}.
 }
 \examples{
-
+\donttest{
 BIC <- c(2343.23,2344.99,2349.12)
 #Compute the posterior probabilities given these
 #BIC-values and assuming equal prior model probabilities.
 postprob(BIC)
+}
 }

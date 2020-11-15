@@ -30,6 +30,7 @@ Return a list of which the order-constrained BIC of modeling \code{object} with 
 \code{bic_oc} computes the order-constrained BIC for a fitted model object (e.g., lm-object, a glm-object, or a coxph-object) with order constraints on certain effects.
 }
 \examples{
+\donttest{
 n <- 100
 x1 <- rnorm(n)
 x2 <- rnorm(n)
@@ -40,4 +41,5 @@ glm1 <- lm(y ~ 1 + x1 + x2, data=df)
 # the effect of 'x2' on 'y' is larger than the effect of 'x1' on 'y', and both effects
 # are assumed positive.
 bic_oc(glm1,"x2 > x1 > 0")
+}
 }
