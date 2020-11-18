@@ -62,7 +62,7 @@ bic_oc <- function(object, constraints=NULL, complement=FALSE, N=NULL){
     }
     message(paste0("The sample size was extracted from the object, resulting in N = ",
                   as.character(N),", if this","\n",
-                  "is not correct specify the sample size manually via the 'N' argument."))
+                  "is not correct specify the sample size manually via the 'N' argument.","\n"))
   }
 
   if(is.null(constraints)){ #compute regular BIC
@@ -70,6 +70,11 @@ bic_oc <- function(object, constraints=NULL, complement=FALSE, N=NULL){
     postprob <- 1
     priorprob <- 1
   }else{
+    # check that constraints do not contain equalities
+    if(grepl("=", constraints, fixed = TRUE)){
+      stop("The 'constraints' argument should not contain equalities '='.")
+    }
+
     # to get posterior and prior probabilities use BF function from BFpack
     estimates <- object$coefficients
     Sigma <- vcov(object)[1:length(estimates),1:length(estimates)]
@@ -127,9 +132,6 @@ postprob <- function(bic,priorprob=1){
 }
 
 #' @importFrom stats logLik vcov
-#' @importFrom mvtnorm rmvnorm pmvnorm
-#' @importFrom Matrix rankMatrix
-#' @importFrom MASS ginv
 #' @importFrom BFpack BF
 
 create_matrices_oc <- function(object, constraints){
