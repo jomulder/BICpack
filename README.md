@@ -20,26 +20,30 @@ salary <- read.table("http://data.princeton.edu/wws509/datasets/salary.dat", hea
 # Testing a model assuming a positive gender effect versus a model assuming a negative
 # gender effect versus a model assuming no gender effect.
 
-#fit a model with all effects present
+# fit a model with all effects present
 salfit <- glm( sl ~ sx + rk + yr + dg + yd, family = gaussian, data=salary)
-#a model which assumes a positive effect for being male
+# a model which assumes a positive effect for being male
 bic_oc(salfit,"sxmale>0")
-#a model which assumes a negative effect for being male
+# a model which assumes a negative effect for being male
 bic_oc(salfit,"sxmale<0")
 
-#fit a model excluding the gender effect
+# fit a model excluding the gender effect
 salfit0 <- glm( sl ~ rk + yr + dg + yd, family = gaussian, data=salary)
-#a model which assumes no gender effect
+# a model which assumes no gender effect
 bic_oc(salfit0)
 
-#getting posterior probabilities of the models assuming they are equally likely a priori
-bicvec <- c(bic_oc(salfit,"sxmale>0"),bic_oc(salfit,"sxmale<0"),bic_oc(salfit0))
+# getting posterior probabilities of the models assuming they are equally likely a priori
+bicvec <- c(bic_oc(salfit, "sxmale > 0"), bic_oc(salfit,"sxmale < 0"), bic_oc(salfit0))
 postprob(bicvec)
 
-#testing for an ordered effect that salary increases from assistent to associate, and from
+# testing for an ordered effect that salary increases from assistent to associate, and from
 # associate to full professor
-bic_oc(salfit,"rkfull>rkassociate>0")
-bic_oc(salfit,"rkfull>rkassociate>0",complement=TRUE)
+bic_oc(salfit,"rkfull > rkassociate > 0")
+bic_oc(salfit,"rkfull > rkassociate > 0", complement = TRUE)
+
+# the BIC for the order hypothesis can also be obtained by separately specifying the constraints
+# using the ampersant '&'
+bic_oc(salfit,"rkfull > rkassociate & rkassociate > 0")
 ```
 
 Installation
