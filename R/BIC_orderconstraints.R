@@ -60,9 +60,9 @@ bic_oc <- function(object, constraints=NULL, complement=FALSE, N=NULL){
     if(class(object)[1]=="coxph"){
       N <- object$n
     }
-    warning(paste0("The number of observations was extracted from the object, resulting in N = ",
-                  as.character(N),", ","\n",
-                  "if this is not correct specify the sample size manually via the 'N' argument."))
+    message(paste0("The sample size was extracted from the object, resulting in N = ",
+                  as.character(N),", if this","\n",
+                  "is not correct specify the sample size manually via the 'N' argument."))
   }
 
   if(is.null(constraints)){ #compute regular BIC

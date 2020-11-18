@@ -33,7 +33,8 @@ salfit0 <- glm( sl ~ rk + yr + dg + yd, family = gaussian, data=salary)
 bic_oc(salfit0)
 
 # getting posterior probabilities of the models assuming they are equally likely a priori
-bicvec <- c(bic_oc(salfit, "sxmale > 0"), bic_oc(salfit,"sxmale < 0"), bic_oc(salfit0))
+bicvec <- c(bic_oc(salfit, "sxmale > 0")[[1]], bic_oc(salfit,"sxmale < 0")[[1]],
+  bic_oc(salfit0)[[1]])
 postprob(bicvec)
 
 # testing for an ordered effect that salary increases from assistent to associate, and from
