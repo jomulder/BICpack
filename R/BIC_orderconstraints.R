@@ -10,14 +10,23 @@
 
 #' Compute the BIC of an order-constrained model.
 #'
-#'\code{bic_oc} computes the order-constrained BIC for a fitted model object (e.g., lm-object, a glm-object, or a coxph-object) with order constraints on certain effects.
+#'\code{bic_oc} computes the order-constrained BIC for a fitted model object (e.g., lm-object,
+#'a glm-object, or a coxph-object) with order constraints on certain effects.
 #'
 #' @param object A fitted model object, such as a glm-object
-#' @param constraints A string specifying order constraints on certain effects of the modeling object. If the value is NULL the ordinary BIC is computed.
-#' @param complement A logical scalar that specifies if the order-constrained subspace is considered (FALSE) or its complement (TRUE). Default is FALSE.
-#' @param numdraws A number specifying the number of draws that are used to compute the posterior and prior probability that the order constraints hold. This setting is only when the number of \code{constraints} is larger than the rank of the coefficient matrix corresponding to the \code{constraints}.
-#' @param N The sample size used for the fitted model \code{object}. If it is left empty (\code{NULL}), then the sample size will be determine based on the dimension of the \code{fitted.values} element of \code{object}.
-#' @return Return a list of which the order-constrained BIC of modeling \code{object} with \code{constraints} based on the local unit-information prior as first element, the posterior probability that the constraints hold as second element, and the prior probability that the constraints hold as third element. If \code{complement} is TRUE then the complement of the order-constrained subspace is considered.
+#' @param constraints A string specifying order constraints on certain effects of the modeling
+#' object. The ampersant (\code{&}) can be used to specify separate constraints.
+#' If the value is NULL the ordinary BIC is computed.
+#' @param complement A logical scalar that specifies if the order-constrained subspace is
+#' considered (FALSE) or its complement (TRUE). Default is FALSE.
+#' @param N The sample size used for the fitted model \code{object}. If it is left empty
+#' (\code{NULL}), then the sample size will be determine based on the dimension of the
+#' \code{fitted.values} element of \code{object}.
+#' @return Return a list of which the order-constrained BIC of modeling \code{object} with
+#' \code{constraints} based on the local unit-information prior as first element, the posterior
+#' probability that the constraints hold as second element, and the prior probability that the
+#' constraints hold as third element. If \code{complement} is TRUE then the complement of the
+#' order-constrained subspace is considered.
 #' @examples
 #' \donttest{
 #' n <- 100
@@ -30,10 +39,11 @@
 #' # the effect of 'x2' on 'y' is larger than the effect of 'x1' on 'y', and both effects
 #' # are assumed positive.
 #' bic_oc(glm1,"x2 > x1 > 0")
+#' # the same result would be obtained by separating the constraints with a '&'
+#' bic_oc(glm1,"x2 > x1 & x1 > 0")
 #' }
-#' @rdnname bic_oc
 #' @export
-bic_oc <- function(object, constraints=NULL, complement=FALSE, numdraws=1e5, N=NULL){
+bic_oc <- function(object, constraints=NULL, complement=FALSE, N=NULL){
 
   # The function 'bic_oc' can be used for computing the order-constrained BIC
   # for a model-object (e.g., glm, coxph) with additional order constraints on
@@ -57,140 +67,39 @@ bic_oc <- function(object, constraints=NULL, complement=FALSE, numdraws=1e5, N=N
 
   if(is.null(constraints)){ #compute regular BIC
     margLike <- logLike.unc - numpara/2*log(N)
-    post.prob <- 1
-    prior.prob <- 1
+    postprob <- 1
+    priorprob <- 1
   }else{
-    if(length(constraints)[1]==1){
-      #one set of order constraints is formulated
-      RrIN <- create_matrices_oc(object, constraints)
+    # to get posterior and prior probabilities use BF function from BFpack
+    estimates <- object$coefficients
+    Sigma <- vcov(object)[1:length(estimates),1:length(estimates)]
+    approxBF_order <- BFpack::BF(x=estimates,hypothesis=constraints,Sigma=Sigma,n=N)
+    postprob <- approxBF_order$BFtable_confirmatory[1,4]
+    priorprob <- approxBF_order$BFtable_confirmatory[1,2]
 
-      RI <- RrIN$R
-      rI <- RrIN$r
-      RrI <- cbind(RI,rI)
-
-      #get estimates and the asyptotic error covariance matrix
-      estimates <- object$coefficients
-      Sigma <- vcov(object)[1:length(estimates),1:length(estimates)]
-
-      #compute probabilities of the inequality constraints
-      if(Matrix::rankMatrix(RrI)[1]==nrow(RrI)){
-        #use pmvnorm for computing prior and posterior probabilities
-        means <- RI%*%estimates
-        covm <- RI%*%Sigma%*%t(RI)
-
-        post.prob <- mvtnorm::pmvnorm(lower=c(rI),upper=rep(Inf,length(means)),
-                                      mean=c(means),sigma=covm)[1]
-        prior.prob <- mvtnorm::pmvnorm(lower=c(rI),upper=rep(Inf,length(means)),
-                                       mean=c(rI),sigma=covm)[1]
-      }else{
-
-        priormean <- ginv(RI)%*%rI
-        postmean <- estimates
-        draws <- mvtnorm::rmvnorm(numdraws,mean=priormean,sigma=Sigma*N)
-        prior.prob <- mean(apply(draws%*%t(RI) > t(matrix(rep(rI,numdraws),ncol=numdraws)),1,prod))
-        draws <- mvtnorm::rmvnorm(numdraws,mean=postmean,sigma=Sigma)
-        post.prob <- mean(apply(draws%*%t(RI) > t(matrix(rep(rI,numdraws),ncol=numdraws)),1,prod))
-
-        ##use Bain for computing probabilities
-        #Bain.object <- Bain(estimate=estimates, covariance=Sigma, nspec=0, njoint=0, samp=N, ERr = matrix(0,0,0), IRr = RrI, print=F)
-        #post.prob <- as.double(as.vector.factor(Bain.object$fit_com_table[1,5]))
-        #prior.prob <- as.double(as.vector.factor(Bain.object$fit_com_table[1,6]))
-      }
-
-    }else{
-      #multiple sets of order constraints are formulated
-      RrIN <- list(0)
-      numcon <- rep(0,length(constraints))
-      RrAll <- NULL
-      for(c in 1:length(constraints)){
-        RrIN[[c]] <- create_matrices_oc(object, constraints[c])
-        numcon[c] <- nrow(RrIN[[c]]$R)
-        RrAll <- rbind(RrAll,cbind(RrIN[[c]]$R,RrIN[[c]]$r))
-      }
-      #check if the order-constrained models overlap
-      estimates <- object$coefficients
-      Sigma <- vcov(object)[1:length(estimates),1:length(estimates)]
-      draws <- mvtnorm::rmvnorm(numdraws,sigma=Sigma*N)
-      checks <- rep(1,numdraws)
-      for(c in 1:length(constraints)){
-        checks <- checks*apply(draws%*%t(RrIN[[c]]$R)>
-                                 t(matrix(rep(c(RrIN[[c]]$r),numdraws),nrow=numcon[c])),1,prod)
-      }
-      if(max(checks)==1){
-        #at least two order-constrained models partially overlap
-        #compute posterior probability
-        thetadraws <- mvtnorm::rmvnorm(numdraws,mean=estimates,sigma=Sigma)
-        checks <- rep(0,numdraws)
-        for(c in 1:length(constraints)){
-          checks <- checks + apply(thetadraws%*%t(RrIN[[c]]$R)>
-                                     t(matrix(rep(c(RrIN[[c]]$r),numdraws),nrow=numcon[c])),1,prod)
-        }
-        post.prob <- mean(checks>0)
-        #compute prior probability
-        rAll <- RrAll[,length(estimates)+1]
-        RAll <- RrAll[,1:length(estimates)]
-        priormean <- c(ginv(RAll)%*%rAll)
-        thetadraws <- mvtnorm::rmvnorm(numdraws,mean=priormean,sigma=Sigma*N)
-        checks <- rep(0,numdraws)
-        for(c in 1:length(constraints)){
-          checks <- checks + apply(thetadraws%*%t(RrIN[[c]]$R)>
-                                     t(matrix(rep(c(RrIN[[c]]$r),numdraws),nrow=numcon[c])),1,prod)
-        }
-        prior.prob <- mean(checks>0)
-      }else{
-        #constraints do not overlap
-        #take sum of probabilities of separate sets of constraints
-        post.prob <- prior.prob <- 0
-        for(c in 1:length(constraints)){
-          RI <- RrIN[[c]]$R
-          rI <- RrIN[[c]]$r
-          if(Matrix::rankMatrix(RrI)[1]==nrow(RrI)){
-            #use pmvnorm for computing prior and posterior probabilities
-            means <- RI%*%estimates
-            covm <- RI%*%Sigma%*%t(RI)
-
-            post.prob <- post.prob + mvtnorm::pmvnorm(lower=c(rI),upper=rep(Inf,length(means)),
-                                                      mean=c(means),sigma=covm)[1]
-            prior.prob <- prior.prob + mvtnorm::pmvnorm(lower=c(rI),upper=rep(Inf,length(means)),
-                                                        mean=c(rI),sigma=covm)[1]
-          }else{
-
-            priormean <- ginv(RI)%*%rI
-            postmean <- estimates
-            draws <- mvtnorm::rmvnorm(numdraws,mean=priormean,sigma=Sigma*N)
-            prior.prob <- prior.prob + mean(apply(draws%*%t(RI) > t(matrix(rep(rI,numdraws),ncol=numdraws)),1,prod))
-            draws <- mvtnorm::rmvnorm(numdraws,mean=postmean,sigma=Sigma)
-            post.prob <- post.prob + mean(apply(draws%*%t(RI) > t(matrix(rep(rI,numdraws),ncol=numdraws)),1,prod))
-
-            ##use Bain for computing probabilities
-            #Bain.object <- Bain(estimate=estimates, covariance=Sigma, nspec=0,njoint=0,samp=N,IRr = RrI,print=F)
-            #post.prob <- post.prob + Bain.object$testResult$fit
-            #prior.prob <- prior.prob + Bain.object$testResult$complexity
-          }
-        }
-      }
-    }
     #invert for complement if specified
     if(complement==T){
-      post.prob <- 1 - post.prob
-      prior.prob <- 1 - prior.prob
+      postprob <- 1 - postprob
+      priorprob <- 1 - priorprob
     }
 
     #regular BIC of a model excluding the inequality constraints
-    margLike <- logLike.unc - numpara/2*log(N) + log(post.prob) - log(prior.prob)
+    margLike <- logLike.unc - numpara/2*log(N) + log(postprob) - log(priorprob)
     names(margLike) <- NULL
   }
 
   BIC <- -2 * margLike
-  return(list(OC_BIC=BIC,post_prob=post.prob,prior_prob=prior.prob))
+  return(list(OC_BIC=BIC,post_prob=postprob,prior_prob=priorprob))
 }
 
 #' Compute posterior model probabilities for given BIC values
 #'
-#'\code{postprob} computes posterior model probabilities based on given \code{bic}-values assuming prior probabilities specified as \code{priorprob}.
+#'\code{postprob} computes posterior model probabilities based on given \code{bic}-values
+#'assuming prior probabilities specified as \code{priorprob}.
 #'
 #' @param bic A vector of length greater than 1 containing BIC-values of the models of interest.
-#' @param priorprob A vector containing the prior probabilities of the models. The vector does not have to be normalized. The default setting gives equal prior probabilities.
+#' @param priorprob A vector containing the prior probabilities of the models. The vector does
+#' not have to be normalized. The default setting gives equal prior probabilities.
 #' @return A vector of posterior model probabilities
 #' @examples
 #' \donttest{
@@ -199,7 +108,6 @@ bic_oc <- function(object, constraints=NULL, complement=FALSE, numdraws=1e5, N=N
 #' #BIC-values and assuming equal prior model probabilities.
 #' postprob(BIC)
 #' }
-#' @rdnname postprob
 #' @export
 postprob <- function(bic,priorprob=1){
   #compute posterior model probabilities based on the BIC
@@ -222,6 +130,7 @@ postprob <- function(bic,priorprob=1){
 #' @importFrom mvtnorm rmvnorm pmvnorm
 #' @importFrom Matrix rankMatrix
 #' @importFrom MASS ginv
+#' @importFrom BFpack BF
 
 create_matrices_oc <- function(object, constraints){
   # This is a slight modification of a function developed by Anton Olsson Collentine

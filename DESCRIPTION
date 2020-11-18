@@ -16,7 +16,8 @@ Imports:
     Matrix,
     mvtnorm,
     stats,
-    MASS
+    MASS,
+    BFpack
 
 
 

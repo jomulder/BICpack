@@ -4,30 +4,32 @@
 \alias{bic_oc}
 \title{Compute the BIC of an order-constrained model.}
 \usage{
-bic_oc(
-  object,
-  constraints = NULL,
-  complement = FALSE,
-  numdraws = 1e+05,
-  N = NULL
-)
+bic_oc(object, constraints = NULL, complement = FALSE, N = NULL)
 }
 \arguments{
 \item{object}{A fitted model object, such as a glm-object}
 
-\item{constraints}{A string specifying order constraints on certain effects of the modeling object. If the value is NULL the ordinary BIC is computed.}
+\item{constraints}{A string specifying order constraints on certain effects of the modeling
+object. The ampersant (\code{&}) can be used to specify separate constraints.
+If the value is NULL the ordinary BIC is computed.}
 
-\item{complement}{A logical scalar that specifies if the order-constrained subspace is considered (FALSE) or its complement (TRUE). Default is FALSE.}
+\item{complement}{A logical scalar that specifies if the order-constrained subspace is
+considered (FALSE) or its complement (TRUE). Default is FALSE.}
 
-\item{numdraws}{A number specifying the number of draws that are used to compute the posterior and prior probability that the order constraints hold. This setting is only when the number of \code{constraints} is larger than the rank of the coefficient matrix corresponding to the \code{constraints}.}
-
-\item{N}{The sample size used for the fitted model \code{object}. If it is left empty (\code{NULL}), then the sample size will be determine based on the dimension of the \code{fitted.values} element of \code{object}.}
+\item{N}{The sample size used for the fitted model \code{object}. If it is left empty
+(\code{NULL}), then the sample size will be determine based on the dimension of the
+\code{fitted.values} element of \code{object}.}
 }
 \value{
-Return a list of which the order-constrained BIC of modeling \code{object} with \code{constraints} based on the local unit-information prior as first element, the posterior probability that the constraints hold as second element, and the prior probability that the constraints hold as third element. If \code{complement} is TRUE then the complement of the order-constrained subspace is considered.
+Return a list of which the order-constrained BIC of modeling \code{object} with
+\code{constraints} based on the local unit-information prior as first element, the posterior
+probability that the constraints hold as second element, and the prior probability that the
+constraints hold as third element. If \code{complement} is TRUE then the complement of the
+order-constrained subspace is considered.
 }
 \description{
-\code{bic_oc} computes the order-constrained BIC for a fitted model object (e.g., lm-object, a glm-object, or a coxph-object) with order constraints on certain effects.
+\code{bic_oc} computes the order-constrained BIC for a fitted model object (e.g., lm-object,
+a glm-object, or a coxph-object) with order constraints on certain effects.
 }
 \examples{
 \donttest{
@@ -41,5 +43,7 @@ glm1 <- lm(y ~ 1 + x1 + x2, data=df)
 # the effect of 'x2' on 'y' is larger than the effect of 'x1' on 'y', and both effects
 # are assumed positive.
 bic_oc(glm1,"x2 > x1 > 0")
+# the same result would be obtained by separating the constraints with a '&'
+bic_oc(glm1,"x2 > x1 & x1 > 0")
 }
 }

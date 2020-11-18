@@ -2,6 +2,7 @@
 
 export(bic_oc)
 export(postprob)
+importFrom(BFpack,BF)
 importFrom(MASS,ginv)
 importFrom(Matrix,rankMatrix)
 importFrom(mvtnorm,pmvnorm)

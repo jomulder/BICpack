@@ -9,13 +9,15 @@ postprob(bic, priorprob = 1)
 \arguments{
 \item{bic}{A vector of length greater than 1 containing BIC-values of the models of interest.}
 
-\item{priorprob}{A vector containing the prior probabilities of the models. The vector does not have to be normalized. The default setting gives equal prior probabilities.}
+\item{priorprob}{A vector containing the prior probabilities of the models. The vector does
+not have to be normalized. The default setting gives equal prior probabilities.}
 }
 \value{
 A vector of posterior model probabilities
 }
 \description{
-\code{postprob} computes posterior model probabilities based on given \code{bic}-values assuming prior probabilities specified as \code{priorprob}.
+\code{postprob} computes posterior model probabilities based on given \code{bic}-values
+assuming prior probabilities specified as \code{priorprob}.
 }
 \examples{
 \donttest{
