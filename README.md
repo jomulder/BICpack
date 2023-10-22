@@ -45,11 +45,13 @@ bic_oc3 <- bic_oc(salfit0) #when the 'constraints' are omitted the standard bic 
 bicvec <- c(bic_oc1[[1]], bic_oc2[[1]], bic_oc3[[1]])
 postprob(bicvec) #largest posterior probability for multivariate one-sided model
 
-# compute bic of an ordered model
+# compute bic of an order-constrained model
 salfit2 <- glm(mpg ~ gear + qsec + vs + am, family = gaussian, data = mtcars.standardized)
-bic_oc(salfit2, constraints = "am > vs > qsec")
-bic_oc(salfit2, constraints = "am > vs > qsec", complement = TRUE)
+bic_oc4 <- bic_oc(salfit2, constraints = "am > vs > qsec")
+# compute bic of the complement of this order-constrained model
+bic_oc5 <- bic_oc(salfit2, constraints = "am > vs > qsec", complement = TRUE)
 #more evidence for the order-constrained model than for its complement
+postprob(c(bic_oc4[[1]],bic_oc5[[1]]))
 
 
 ```

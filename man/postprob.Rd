@@ -21,9 +21,12 @@ assuming prior probabilities specified as \code{priorprob}.
 }
 \examples{
 \donttest{
-BIC <- c(2343.23,2344.99,2349.12)
-#Compute the posterior probabilities given these
-#BIC-values and assuming equal prior model probabilities.
-postprob(BIC)
+
+# compute bic of an order-constrained model
+salfit <- glm(mpg ~ gear + qsec + vs + am, family = gaussian, data = mtcars.standardized)
+bic_oc1 <- bic_oc(salfit, constraints = "am > vs > qsec")
+# compute bic of the complement of this order-constrained model
+bic_oc2 <- bic_oc(salfit, constraints = "am > vs > qsec", complement = TRUE)
+postprob(c(bic_oc1[[1]],bic_oc2[[1]]))
 }
 }
