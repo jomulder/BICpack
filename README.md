@@ -2,11 +2,20 @@
 
 The function `bic_oc` can be used for computing the BIC for a model with order constraints and one-sided constraints using the order-constrained BIC (Mulder & Raftery, 2019). The function requires a fitted model (e.g., glm, survival) as input as well as a string that specifies a set of order constraints on the regression coefficients. The function uses some functionality of [BFpack](https://cran.r-project.org/web/packages/BFpack/index.html).
 
-BICpack was written by Joris Mulder <j.mulder3@tilburguniversity.edu>
-
 Last Modified 10/22/23
 
 Licensed under the GNU General Public License version 2 (June, 1991)
+
+
+Installation
+------------
+
+You can install BICpack from github with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("jomulder/BICpack")
+```
 
 Basic example
 -------------
@@ -45,11 +54,12 @@ bic_oc(salfit2, constraints = "am > vs > qsec", complement = TRUE)
 
 ```
 
-Installation
+
+Citing BICpack
 ------------
 
-You can install BICpack from github with:
+You can cite the package 
 
-``` r
-# install.packages("devtools")
-devtools::install_github("jomulder/BICpack")
+Mulder, J., & Raftery, A. E. (2022). BIC Extensions for Order-constrained Model Selection.
+Sociological Methods & Research, 51(2) 471–498. [doi:10.1177/0049124119882459](https://journals.sagepub.com/doi/full/10.1177/0049124119882459)
+
