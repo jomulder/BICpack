@@ -23,21 +23,24 @@ Basic example
 ``` r
 library(BICpack)
 
-# Testing a model assuming a positive gender effect versus a model assuming a negative
-# gender effect versus a model assuming no gender effect.
-
-# fit a model with all effects present
+# Consider a main unconstrained model
 mtcars.standardized <- as.data.frame(scale(mtcars))
 salfit <- glm(mpg ~ cyl + disp + hp, family = gaussian, data = mtcars.standardized)
-# a model which assumes a negative effect of 'cyl' and 'disp'
+
+# and a model selection problem between:
+# M1: cyl < 0 & disp < 0
+# M2: (cyl < 0 & disp < 0) (complement space of M1)
+# M3: cyl = disp = 0
+
+# Compute constrained BIC of model M1
 bic_oc1 <- bic_oc(salfit, constraints = "cyl < 0 & disp < 0")
 # Note that the same order-constrained model can be written using brackets
 bic_oc(salfit, constraints = "(cyl , disp ) < 0")
 
-# fit a constrained model that covers the complement subspace
+# Compute constrained BIC of model M2
 bic_oc2 <- bic_oc(salfit, constraints = "cyl < 0 & disp < 0", complement = TRUE)
 
-# fit a model without 'cyl' and 'disp'
+# Compute BIC of model M3
 salfit0 <- glm(mpg ~ hp, family = gaussian, data = mtcars.standardized)
 bic_oc3 <- bic_oc(salfit0) #when the 'constraints' are omitted the standard bic is given
 
