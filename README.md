@@ -29,7 +29,7 @@ salfit <- glm(mpg ~ cyl + disp + hp, family = gaussian, data = mtcars.standardiz
 
 # and a model selection problem between:
 # M1: cyl < 0 & disp < 0
-# M2: (cyl < 0 & disp < 0) (complement space of M1)
+# M2: (cyl < 0 & disp < 0)^c (i.e., the complement of the subspace under M1)
 # M3: cyl = disp = 0
 
 # Compute constrained BIC of model M1
