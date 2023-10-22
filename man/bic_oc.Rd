@@ -16,7 +16,7 @@ If the value is NULL the ordinary BIC is computed.}
 \item{complement}{A logical scalar that specifies if the order-constrained subspace is
 considered (FALSE) or its complement (TRUE). Default is FALSE.}
 
-\item{N}{The sample size used for the fitted model \code{object}. If it is left empty
+\item{N}{The sample size that was used to fit the model \code{object}. If it is left empty
 (\code{NULL}), then the sample size will be determine based on the dimension of the
 \code{fitted.values} element of \code{object}.}
 }
@@ -45,5 +45,14 @@ glm1 <- lm(y ~ 1 + x1 + x2, data=df)
 bic_oc(glm1,"x2 > x1 > 0")
 # the same result would be obtained by separating the constraints with a '&'
 bic_oc(glm1,"x2 > x1 & x1 > 0")
+
+# a model where both coefficients are assumed to be positive
+bic_oc(glm1,"x2 > & x1 > 0")
+# the same model where both coefficients are assumed to be positive using the brackets notation
+bic_oc(glm1,"(x2 , x1 ) > 0")
 }
+}
+\references{
+Mulder, J., and Raftery, A.E. (2022). BIC Extensions for Order-constrained Model
+Selection. Sociological Methods & Research, 51 (2), 471-498. <DOI:10.1177/0049124119882459>
 }

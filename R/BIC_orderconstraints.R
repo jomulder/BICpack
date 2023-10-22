@@ -19,7 +19,7 @@
 #' If the value is NULL the ordinary BIC is computed.
 #' @param complement A logical scalar that specifies if the order-constrained subspace is
 #' considered (FALSE) or its complement (TRUE). Default is FALSE.
-#' @param N The sample size used for the fitted model \code{object}. If it is left empty
+#' @param N The sample size that was used to fit the model \code{object}. If it is left empty
 #' (\code{NULL}), then the sample size will be determine based on the dimension of the
 #' \code{fitted.values} element of \code{object}.
 #' @return Return a list of which the order-constrained BIC of modeling \code{object} with
@@ -27,6 +27,10 @@
 #' probability that the constraints hold as second element, and the prior probability that the
 #' constraints hold as third element. If \code{complement} is TRUE then the complement of the
 #' order-constrained subspace is considered.
+#'
+#' @references Mulder, J., and Raftery, A.E. (2022). BIC Extensions for Order-constrained Model
+#' Selection. Sociological Methods & Research, 51 (2), 471-498. <DOI:10.1177/0049124119882459>
+#'
 #' @examples
 #' \donttest{
 #' n <- 100
@@ -41,6 +45,11 @@
 #' bic_oc(glm1,"x2 > x1 > 0")
 #' # the same result would be obtained by separating the constraints with a '&'
 #' bic_oc(glm1,"x2 > x1 & x1 > 0")
+#'
+#' # a model where both coefficients are assumed to be positive
+#' bic_oc(glm1,"x2 > & x1 > 0")
+#' # the same model where both coefficients are assumed to be positive using the brackets notation
+#' bic_oc(glm1,"(x2 , x1 ) > 0")
 #' }
 #' @export
 bic_oc <- function(object, constraints=NULL, complement=FALSE, N=NULL){
@@ -66,7 +75,7 @@ bic_oc <- function(object, constraints=NULL, complement=FALSE, N=NULL){
   }
 
   if(is.null(constraints)){ #compute regular BIC
-    margLike <- logLike.unc - numpara/2*log(N)
+    margLike <- margLike_unc <- logLike.unc - numpara/2*log(N)
     postprob <- 1
     priorprob <- 1
   }else{
@@ -90,11 +99,49 @@ bic_oc <- function(object, constraints=NULL, complement=FALSE, N=NULL){
 
     #regular BIC of a model excluding the inequality constraints
     margLike <- logLike.unc - numpara/2*log(N) + log(postprob) - log(priorprob)
+    margLike_unc <- logLike.unc - numpara/2*log(N)
     names(margLike) <- NULL
   }
 
-  BIC <- -2 * margLike
-  return(list(OC_BIC=BIC,post_prob=postprob,prior_prob=priorprob))
+  BIC_OC <- -2 * margLike
+  BIC_unc <- -2 * margLike_unc
+  call1 <- match.call()
+  out <- list(BIC_OC=BIC_OC,BIC_unc=BIC_unc,postprob=postprob,priorprob=priorprob,
+              constraints=constraints,call=call1)
+  class(out) <- "BIC_OC"
+  return(out)
+}
+
+#' @method print BIC_OC
+#' @export
+print.BIC_OC <- function(x,
+                         digits = 3,
+                         na.print = "", ...){
+
+  cat("Call:")
+  cat("\n")
+  print(x$call)
+
+  cat("\n")
+  cat("Order-constrained BIC:","\n", sep = "")
+  cat(as.character(round(x$BIC_OC,digits)),"\n", sep = "")
+
+  cat("\n")
+  cat("BIC (ignoring the constraints):","\n", sep = "")
+  cat(as.character(round(x$BIC_unc,digits)),"\n", sep = "")
+
+  cat("\n")
+  cat("Constraints:","\n", sep = "")
+  cat(x$constraints,"\n", sep = "")
+
+  cat("\n")
+  cat("Posterior probability that the constraints hold under an unconstrained model:","\n", sep = "")
+  cat(as.character(round(x$postprob,digits)),"\n", sep = "")
+
+  cat("\n")
+  cat("Prior probability that the constraints hold under an unconstrained model:","\n", sep = "")
+  cat(as.character(round(x$priorprob,digits)),"\n", sep = "")
+
 }
 
 #' Compute posterior model probabilities for given BIC values
