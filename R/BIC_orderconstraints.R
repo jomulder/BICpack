@@ -22,14 +22,23 @@
 #' @param N The sample size that was used to fit the model \code{object}. If it is left empty
 #' (\code{NULL}), then the sample size will be determine based on the dimension of the
 #' \code{fitted.values} element of \code{object}.
-#' @return Return a list of which the order-constrained BIC of modeling \code{object} with
-#' \code{constraints} based on the local unit-information prior as first element, the posterior
-#' probability that the constraints hold as second element, and the prior probability that the
-#' constraints hold as third element. If \code{complement} is TRUE then the complement of the
-#' order-constrained subspace is considered.
-#'
+#' @return The output is an object of class \code{BIC_OC}. The object has elements:
+#' \itemize{
+#' \item \code{BIC_OC} The order-constrained BIC.
+#' \item \code{BIC_unc} The BIC when the constraints are ignored.
+#' \item \code{postprob} The posterior probability that the constraints hold under the
+#' unconstrained model.
+#' \item \code{priorprob} The prior probability that the constraints hold under the
+#' unconstrained model assuming a prior that is centered on the boundary of the constrained
+#' subspace (Mulder and Raftery, 2022).
+#' \item \code{constraints} The constraints as specified in the \code{constraints} argument.
+#' \item \code{complement} A logical that specifies if the complement is considered in the
+#' \code{complement} argument.
+#' \item \code{call} The function call.
+#' }
 #' @references Mulder, J., and Raftery, A.E. (2022). BIC Extensions for Order-constrained Model
-#' Selection. Sociological Methods & Research, 51 (2), 471-498. <DOI:10.1177/0049124119882459>
+#' Selection. Sociological Methods & Research, 51 (2), 471-498.
+#' \href{https://journals.sagepub.com/doi/abs/10.1177/0049124119882459}{DOI:10.1177/0049124119882459}
 #'
 #' @examples
 #' \donttest{
@@ -107,7 +116,7 @@ bic_oc <- function(object, constraints=NULL, complement=FALSE, N=NULL){
   BIC_unc <- -2 * margLike_unc
   call1 <- match.call()
   out <- list(BIC_OC=BIC_OC,BIC_unc=BIC_unc,postprob=postprob,priorprob=priorprob,
-              constraints=constraints,call=call1)
+              constraints=constraints,complement=complement,call=call1)
   class(out) <- "BIC_OC"
   return(out)
 }
@@ -122,25 +131,23 @@ print.BIC_OC <- function(x,
   cat("\n")
   print(x$call)
 
-  cat("\n")
-  cat("Order-constrained BIC:","\n", sep = "")
-  cat(as.character(round(x$BIC_OC,digits)),"\n", sep = "")
+  if(!is.null(x$constraints) & !x$complement){
+    cat("\n")
+    cat("Order-constrained BIC for ",x$constraints,":","\n", sep = "")
+    cat(as.character(round(x$BIC_OC,digits)),"\n", sep = "")
+  }
 
-  cat("\n")
-  cat("BIC (ignoring the constraints):","\n", sep = "")
-  cat(as.character(round(x$BIC_unc,digits)),"\n", sep = "")
+  if(!is.null(x$constraints) & x$complement){
+    cat("\n")
+    cat("Order-constrained BIC for ",x$constraints," (complement):","\n", sep = "")
+    cat(as.character(round(x$BIC_OC,digits)),"\n", sep = "")
+  }
 
-  cat("\n")
-  cat("Constraints:","\n", sep = "")
-  cat(x$constraints,"\n", sep = "")
-
-  cat("\n")
-  cat("Posterior probability that the constraints hold under an unconstrained model:","\n", sep = "")
-  cat(as.character(round(x$postprob,digits)),"\n", sep = "")
-
-  cat("\n")
-  cat("Prior probability that the constraints hold under an unconstrained model:","\n", sep = "")
-  cat(as.character(round(x$priorprob,digits)),"\n", sep = "")
+  if(is.null(x$constraints)){
+    cat("\n")
+    cat("BIC for unconstrained model:","\n", sep = "")
+    cat(as.character(round(x$BIC_OC,digits)),"\n", sep = "")
+  }
 
 }
 

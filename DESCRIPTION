@@ -1,7 +1,7 @@
 Package: BICpack
 Type: Package
 Title: Order-constrained model selection using the BIC
-Version: 0.1.2
+Version: 0.1.3
 Author: c(person(given = c("Joris"),
              family = "Mulder",
              role = c("aut", "cre"),
