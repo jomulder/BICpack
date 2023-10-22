@@ -31,11 +31,11 @@ mtcars.standardized <- as.data.frame(scale(mtcars))
 salfit <- glm(mpg ~ cyl + disp + hp, family = gaussian, data = mtcars.standardized)
 # a model which assumes a negative effect of 'cyl' and 'disp'
 bic_oc1 <- bic_oc(salfit, constraints = "cyl < 0 & disp < 0")
-# same model with a different, equivalent notation of the constraints using brackets
+# Note that the same order-constrained model can be written using brackets
 bic_oc(salfit, constraints = "(cyl , disp ) < 0")
 
-# fit a model which encompasses the complement of the constrained space of 'cyl' and 'disp'
-bic_oc2 <- bic_oc(salfit, constraints = "(cyl , disp ) < 0", complement = TRUE)
+# fit a constrained model that covers the complement subspace
+bic_oc2 <- bic_oc(salfit, constraints = "cyl < 0 & disp < 0", complement = TRUE)
 
 # fit a model without 'cyl' and 'disp'
 salfit0 <- glm(mpg ~ hp, family = gaussian, data = mtcars.standardized)
